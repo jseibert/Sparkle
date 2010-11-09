@@ -112,7 +112,7 @@ finally:
 
 - (void)extractZIP
 {
-	return [self extractArchivePipingDataToCommand:@"ditto -x -k - \"$DESTINATION\""];
+	return [self extractArchivePipingDataToCommand:@"ditto -x - \"$DESTINATION\""];
 }
 
 + (void)load
