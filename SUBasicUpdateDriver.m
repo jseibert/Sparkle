@@ -40,7 +40,9 @@
 	id <SUVersionComparison> comparator = nil;
 	
 	// Give the delegate a chance to provide a custom version comparator
-	if ([[updater delegate] respondsToSelector:@selector(versionComparatorForUpdater:)])
+    comparator = updater.versionComparator;
+
+	if (!comparator && [[updater delegate] respondsToSelector:@selector(versionComparatorForUpdater:)])
 		comparator = [[updater delegate] versionComparatorForUpdater:updater];
 	
 	// If we don't get a comparator from the delegate, use the default comparator

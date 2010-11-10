@@ -21,6 +21,7 @@
 	NSString *customUserAgentString;
 	SUHost *host;
 	IBOutlet id delegate;
+    id <SUVersionComparison>versionComparator;
 }
 
 + (SUUpdater *)sharedUpdater;
@@ -30,7 +31,7 @@
 - (NSBundle *)hostBundle;
 
 - (void)setDelegate:(id)delegate;
-- delegate;
+- (id)delegate;
 
 - (void)setAutomaticallyChecksForUpdates:(BOOL)automaticallyChecks;
 - (BOOL)automaticallyChecksForUpdates;
@@ -50,6 +51,10 @@
 - (void)setAutomaticallyDownloadsUpdates:(BOOL)automaticallyDownloadsUpdates;
 - (BOOL)automaticallyDownloadsUpdates;
 
+// Optionally specify a custom version comparator; takes precedence over delegate.
+- (id <SUVersionComparison>)versionComparator;
+- (void)setVersionComparator:(id <SUVersionComparison>)aComparator;
+
 // This IBAction is meant for a main menu item. Hook up any menu item to this action,
 // and Sparkle will check for updates and report back its findings verbosely.
 - (IBAction)checkForUpdates:sender;
@@ -61,6 +66,9 @@
 
 // Date of last update check. Returns null if no check has been performed.
 - (NSDate*)lastUpdateCheckDate;
+
+// Resets last update date. Useful for switching channels.
+- (void)resetLastUpdateCheckDate;
 
 // This begins a "probing" check for updates which will not actually offer to update to that version. The delegate methods, though,
 // (up to updater:didFindValidUpdate: and updaterDidNotFindUpdate:), are called, so you can use that information in your UI.

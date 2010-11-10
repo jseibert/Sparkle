@@ -36,6 +36,19 @@
 static NSMutableDictionary *sharedUpdaters = nil;
 static NSString * const SUUpdaterDefaultsObservationContext = @"SUUpdaterDefaultsObservationContext";
 
+- (id <SUVersionComparison>)versionComparator
+{
+    return versionComparator;
+}
+
+- (void)setVersionComparator:(id <SUVersionComparison>)aComparator
+{
+    if (versionComparator != aComparator) {
+        [versionComparator release];
+        versionComparator = [aComparator retain];
+    }
+}
+
 + (SUUpdater *)sharedUpdater
 {
 	return [self updaterForBundle:[NSBundle mainBundle]];
@@ -154,6 +167,11 @@ static NSString * const SUUpdaterDefaultsObservationContext = @"SUUpdaterDefault
 - (NSDate *)lastUpdateCheckDate
 {
 	return [host objectForUserDefaultsKey:SULastCheckTimeKey];
+}
+
+- (void)resetLastUpdateCheckDate
+{
+    [host setObject:nil forUserDefaultsKey:SULastCheckTimeKey];
 }
 
 - (void)scheduleNextUpdateCheck

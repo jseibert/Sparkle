@@ -13,7 +13,7 @@
     @protocol
     @abstract    Implement this protocol to provide version comparison facilities for Sparkle.
 */
-@protocol SUVersionComparison
+@protocol SUVersionComparison <NSObject>
 
 /*!
     @method     

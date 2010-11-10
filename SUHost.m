@@ -160,11 +160,15 @@
 	// If we're using a .app, we'll use the standard user defaults mechanism; otherwise, we have to get CF-y.
 	if (bundle == [NSBundle mainBundle])
 	{
-		[[NSUserDefaults standardUserDefaults] setObject:value forKey:defaultName];
+	    if (nil == value) {
+            [[NSUserDefaults standardUserDefaults] removeObjectForKey:defaultName];
+	    } else {
+    		[[NSUserDefaults standardUserDefaults] setObject:value forKey:defaultName];
+	    }
 	}
 	else
 	{
-		CFPreferencesSetValue((CFStringRef)defaultName, value, (CFStringRef)[bundle bundleIdentifier],  kCFPreferencesCurrentUser,  kCFPreferencesAnyHost);
+    	CFPreferencesSetValue((CFStringRef)defaultName, value, (CFStringRef)[bundle bundleIdentifier],  kCFPreferencesCurrentUser,  kCFPreferencesAnyHost);
 		CFPreferencesSynchronize((CFStringRef)[bundle bundleIdentifier], kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
 	}
 }
