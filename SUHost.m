@@ -10,6 +10,10 @@
 #import "SUSystemProfiler.h"
 #import <sys/mount.h> // For statfs for isRunningOnReadOnlyVolume
 
+@interface NSObject (Extensions)
+- (NSString *)longVersion;
+@end
+
 @implementation SUHost
 
 - (id)initWithBundle:(NSBundle *)aBundle
@@ -55,9 +59,17 @@
 
 - (NSString *)version
 {
-	NSString *version = [bundle objectForInfoDictionaryKey:@"CFBundleVersion"];
+    NSString *version = nil;
+    
+    if ([bundle respondsToSelector:@selector(longVersion)])
+        version = [bundle performSelector:@selector(longVersion)];
+
+    if (!version)
+        version = [bundle objectForInfoDictionaryKey:@"CFBundleVersion"];
+
 	if (!version || [version isEqualToString:@""])
 		[NSException raise:@"SUNoVersionException" format:@"This host (%@) has no CFBundleVersion! This attribute is required.", [self bundlePath]];
+
 	return version;
 }
 
