@@ -37,6 +37,7 @@
 {
 	[[self window] center];
 	[[self window] setFrameAutosaveName:@"SUStatusFrame"];
+    [[self window] setLevel:NSFloatingWindowLevel];
 	[progressBar setUsesThreadedAnimation:YES];
 }
 
