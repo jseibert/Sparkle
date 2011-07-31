@@ -9,6 +9,7 @@
 #import "SUInstaller.h"
 #import "SUPlainInstaller.h"
 #import "SUPackageInstaller.h"
+#import "SUCustomInstaller.h"
 #import "SUHost.h" 
 
 @implementation SUInstaller
@@ -37,16 +38,17 @@
 {
 	// Search subdirectories for the application
 	NSString *currentFile, *newAppDownloadPath = nil, *bundleFileName = [[host bundlePath] lastPathComponent], *alternateBundleFileName = [[host name] stringByAppendingPathExtension:[[host bundlePath] pathExtension]];
-	BOOL isPackage = NO;
 	NSString *fallbackPackagePath = nil;
 	NSDirectoryEnumerator *dirEnum = [[NSFileManager defaultManager] enumeratorAtPath:updateFolder];
+	Class installerClass = [SUPlainInstaller class];
+	
 	while ((currentFile = [dirEnum nextObject]))
 	{
 		NSString *currentPath = [updateFolder stringByAppendingPathComponent:currentFile];		
 		if ([[currentFile lastPathComponent] isEqualToString:bundleFileName] ||
 			[[currentFile lastPathComponent] isEqualToString:alternateBundleFileName]) // We found one!
 		{
-			isPackage = NO;
+			installerClass = [SUPlainInstaller class];
 			newAppDownloadPath = currentPath;
 			break;
 		}
@@ -55,13 +57,14 @@
 		{
 			if ([[[currentFile lastPathComponent] stringByDeletingPathExtension] isEqualToString:[bundleFileName stringByDeletingPathExtension]])
 			{
-				isPackage = YES;
+				installerClass = [SUPackageInstaller class];
 				newAppDownloadPath = currentPath;
 				break;
 			}
 			else
 			{
 				// Remember any other non-matching packages we have seen should we need to use one of them as a fallback.
+				installerClass = [SUPackageInstaller class];
 				fallbackPackagePath = currentPath;
 			}
 		}
@@ -69,34 +72,49 @@
 		{
 			// Try matching on bundle identifiers in case the user has changed the name of the host app
 			NSBundle *incomingBundle = [NSBundle bundleWithPath:currentPath];
-			if(incomingBundle && [[incomingBundle bundleIdentifier] isEqualToString:[[host bundle] bundleIdentifier]])
-			{
-				isPackage = NO;
-				newAppDownloadPath = currentPath;
-				break;
+			if (incomingBundle) {
+				if ([[incomingBundle bundleIdentifier] isEqualToString:[[host bundle] bundleIdentifier]])
+				{
+					installerClass = [SUPlainInstaller class];
+					newAppDownloadPath = currentPath;
+					break;
+				}
+				else
+				{
+					// Assume the app is a launchable custom installer
+					installerClass = [SUCustomInstaller class];
+					fallbackPackagePath = currentPath;
+				}
 			}
 		}
 		
 		// Some DMGs have symlinks into /Applications! That's no good!
 		if ([self isAliasFolderAtPath:currentPath])
 			[dirEnum skipDescendents];
+		
+		// Don't dig into bundles. That's scary
+		if ([NSBundle bundleWithPath:currentPath]) {
+			[dirEnum skipDescendents];
+		}
 	}
 
 	// We don't have a valid path. Try to use the fallback package.
-
-	if (newAppDownloadPath == nil && fallbackPackagePath != nil)
-	{
-		isPackage = YES;
+	if (newAppDownloadPath == nil && fallbackPackagePath != nil) {
 		newAppDownloadPath = fallbackPackagePath;
 	}
 	
-	if (newAppDownloadPath == nil)
-	{
-		[self finishInstallationWithResult:NO host:host error:[NSError errorWithDomain:SUSparkleErrorDomain code:SUMissingUpdateError userInfo:[NSDictionary dictionaryWithObject:@"Couldn't find an appropriate update in the downloaded package." forKey:NSLocalizedDescriptionKey]] delegate:delegate];
-	}
-	else
-	{
-		[(isPackage ? [SUPackageInstaller class] : [SUPlainInstaller class]) performInstallationWithPath:newAppDownloadPath host:host delegate:delegate synchronously:synchronously versionComparator:comparator];
+	if (newAppDownloadPath == nil) {
+		[self finishInstallationWithResult:NO 
+									  host:host 
+									 error:[NSError errorWithDomain:SUSparkleErrorDomain code:SUMissingUpdateError 
+														   userInfo:[NSDictionary dictionaryWithObject:@"Couldn't find an appropriate update in the downloaded package." forKey:NSLocalizedDescriptionKey]] 
+								  delegate:delegate];
+	} else {
+		[installerClass performInstallationWithPath:newAppDownloadPath 
+											   host:host 
+										   delegate:delegate 
+									  synchronously:synchronously 
+								  versionComparator:comparator];
 	}
 }
 

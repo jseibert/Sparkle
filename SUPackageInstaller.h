@@ -15,4 +15,9 @@
 @interface SUPackageInstaller : SUPlainInstaller { }
 @end
 
+extern NSString *SUPackageInstallerCommandKey;
+extern NSString *SUPackageInstallerArgumentsKey;
+extern NSString *SUPackageInstallerHostKey;
+extern NSString *SUPackageInstallerDelegateKey;
+
 #endif

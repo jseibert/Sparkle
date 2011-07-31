@@ -15,7 +15,10 @@
 
 @class SUHost;
 @interface SUPlainInstaller : SUInstaller { }
+
 + (void)performInstallationWithPath:(NSString *)path host:(SUHost *)host delegate:delegate synchronously:(BOOL)synchronously versionComparator:(id <SUVersionComparison>)comparator;
++ (void)performInstallationWithInfo:(NSDictionary *)info;
+
 @end
 
 #endif
